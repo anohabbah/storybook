@@ -1,18 +1,12 @@
-import React from "react";
+import React from 'react';
 import PropTypes from 'prop-types';
 
-import Task from "./Task";
+import Task from './Task';
+import { connect } from 'react-redux';
+import { archiveTaskAction, pinTaskAction } from '../lib/redux';
 
-/**
- * @param {boolean} loading
- * @param {[]} tasks
- * @param {Function} onPinTask
- * @param {Function}  onArchivedTask
- * @returns {JSX.Element}
- * @constructor
- */
-function TaskList({loading, tasks, onPinTask, onArchivedTask}) {
-    const events = {onPinTask, onArchivedTask};
+export function PureTaskList({ loading, tasks, onPinTask, onArchiveTask }) {
+    const events = {onPinTask, onArchiveTask};
 
     const LoadingRow = (
         <div className="loading-item">
@@ -55,15 +49,23 @@ function TaskList({loading, tasks, onPinTask, onArchivedTask}) {
     )
 }
 
-TaskList.propTypes = {
+PureTaskList.propTypes = {
     loading: PropTypes.bool,
     tasks: PropTypes.arrayOf(Task.propTypes.task).isRequired,
     onPinTask: PropTypes.func.isRequired,
     onArchiveTask: PropTypes.func.isRequired,
-}
+};
 
-TaskList.defaultProps = {
+PureTaskList.defaultProps = {
     loading: false,
-}
+};
 
-export default TaskList
+export default connect(
+    ({ tasks }) => ({
+        tasks: tasks.filter(t => t.state === 'TASK_INBOX' || t.state === 'TASK_PINNED'),
+    }),
+    dispatch => ({
+        onArchiveTask: id => dispatch(archiveTaskAction(id)),
+        onPinTask: id => dispatch(pinTaskAction(id)),
+    })
+)(PureTaskList);
